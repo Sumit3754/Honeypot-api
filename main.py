@@ -1220,8 +1220,8 @@ async def check_and_send_callback(session_id: str, history: List[Message], curre
     
     # Get conversation metrics
     questions_asked = state.get('questions_asked', total_messages // 2)
-    red_flags = state.get('red_flags', ["Urgency", "OTP Request", "Suspicious Link"])
-    elicitation_attempts = state.get('elicitation_attempts', min(7, total_messages))
+    red_flags = state.get('red_flags', [])
+    elicitation_attempts = state.get('elicitation_attempts', 0)
     
     if is_scam and (total_messages >= 4 or has_critical_info):
         # Use the entities already extracted in the analyze endpoint
@@ -1247,14 +1247,16 @@ async def check_and_send_callback(session_id: str, history: List[Message], curre
         lang_used = state.get('language', 'Unknown')
         agent_notes = (
             f"SCAM DETECTED: {scam_type}. "
-            f"Persona '{persona_used}' used in {lang_used}. "
+            f"Session had {total_messages} total messages exchanged. "
+            f"Identified {len(red_flags)} red flags: {', '.join(red_flags[:5])}. "
+            f"Asked {questions_asked} investigative questions. "
+            f"Made {elicitation_attempts} information elicitation attempts. "
             f"Extracted {len(extracted_intel.get('phoneNumbers', []))} phone numbers, "
             f"{len(extracted_intel.get('bankAccounts', []))} bank accounts, "
             f"{len(extracted_intel.get('upiIds', []))} UPI IDs, "
-            f"{len(extracted_intel.get('phishingLinks', []))} phishing links. "
-            f"Conversation had {total_messages} messages over {engagement_duration}s. "
-            f"Identified red flags: {', '.join(red_flags[:3])}. "
-            f"Asked {questions_asked} investigative questions."
+            f"{len(extracted_intel.get('phishingLinks', []))} phishing links, "
+            f"{len(extracted_intel.get('emailAddresses', []))} email addresses, "
+            f"{len(extracted_intel.get('ids', []))} IDs/case numbers."
         )
         
         payload = {
@@ -1335,26 +1337,41 @@ async def analyze(
             questions_count = sum(1 for msg in our_messages if "?" in (msg or ""))
             current_state["questions_asked"] = max(questions_count, current_state.get("questions_asked", 0))
             
-            # Track red flags identified
-            red_flags = ["Urgency", "OTP Request", "Suspicious Link", "Unsolicited Contact"]
+            # Process message text for red flags and elicitation
             msg_lower = (request.message.text or "").lower()
-            if "urgent" in msg_lower or "immediately" in msg_lower:
-                if "Urgency" not in current_state.get("red_flags", []):
-                    current_state.setdefault("red_flags", []).append("Urgency")
-            if "otp" in msg_lower or "pin" in msg_lower:
-                if "OTP Request" not in current_state.get("red_flags", []):
-                    current_state.setdefault("red_flags", []).append("OTP Request")
-            if "http" in msg_lower or "link" in msg_lower or ".com" in msg_lower:
-                if "Suspicious Link" not in current_state.get("red_flags", []):
-                    current_state.setdefault("red_flags", []).append("Suspicious Link")
-            if current_state.get("turn_count", 0) <= 2:
-                if "Unsolicited Contact" not in current_state.get("red_flags", []):
-                    current_state.setdefault("red_flags", []).append("Unsolicited Contact")
             
-            # Track elicitation attempts (asking for contact info)
-            elicitation_keywords = ["phone", "number", "contact", "email", "account", "upi", "id", "send me"]
-            if any(kw in msg_lower for kw in elicitation_keywords):
-                current_state["elicitation_attempts"] = current_state.get("elicitation_attempts", 0) + 1
+            # Track red flags identified (aim for 5+ flags for 8 points)
+            red_flags_keywords = {
+                "Urgency": ["urgent", "immediately", "now", "hurry", "quick", "asap", "fast", "emergency"],
+                "OTP Request": ["otp", "pin", "password", "cvv", "verification code"],
+                "Suspicious Link": ["http", "link", ".com", ".net", ".org", "click here", "visit"],
+                "Fee/Payment Request": ["fee", "pay", "payment", "transfer", "send money", "charge", "cost"],
+                "Threat": ["block", "suspend", "terminate", "close", "arrest", "legal", "court", "police"],
+                "Too Good To Be True": ["won", "winner", "prize", "lottery", "free", "cashback", "discount", "offer"],
+                "Account Security": ["compromised", "hacked", "unauthorized", "suspicious", "fraud", "verify account"],
+                "Unsolicited Contact": [""],  # Always true for first contact
+                "Request for Personal Info": ["aadhar", "pan", "ssn", "dob", "birth", "address", "full name"]
+            }
+            
+            for flag, keywords in red_flags_keywords.items():
+                if flag == "Unsolicited Contact":
+                    if current_state.get("turn_count", 0) <= 2:
+                        if flag not in current_state.get("red_flags", []):
+                            current_state.setdefault("red_flags", []).append(flag)
+                else:
+                    if any(kw in msg_lower for kw in keywords):
+                        if flag not in current_state.get("red_flags", []):
+                            current_state.setdefault("red_flags", []).append(flag)
+            
+            # Track elicitation attempts (1.5 pts each, max 7 pts)
+            elicitation_keywords = [
+                "phone", "number", "contact", "email", "account", "upi", "id", 
+                "employee id", "staff id", "company", "office", "branch", "website",
+                "verify", "confirm", "check", "validate", "proof", "receipt"
+            ]
+            elicitation_count = sum(1 for kw in elicitation_keywords if kw in msg_lower)
+            if elicitation_count > 0:
+                current_state["elicitation_attempts"] = current_state.get("elicitation_attempts", 0) + elicitation_count
             
             # --- Generate Reply ---
             history_dicts = [m.dict() for m in request.conversationHistory]
