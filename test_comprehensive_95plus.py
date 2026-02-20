@@ -3,6 +3,7 @@ Comprehensive Honeypot API Test Suite - 12 Scenarios for 95+ Score Validation
 Tests all evaluation criteria: Scam Detection, Intelligence Extraction, Conversation Quality, Engagement, Response Structure
 """
 
+import os
 import pytest
 import requests
 import json
@@ -12,7 +13,7 @@ from typing import Dict, List, Any
 # API Configuration
 BASE_URL = "http://localhost:8000"
 API_ENDPOINT = f"{BASE_URL}/analyze"
-API_KEY = "honeypot_key_2026_eval"
+API_KEY = os.getenv("HONEYPOT_API_KEY", "honeypot_key_2026_eval")
 
 # Test Scenarios - All 12 scenarios from evaluation criteria
 SCENARIOS = [

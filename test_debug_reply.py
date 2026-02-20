@@ -1,10 +1,11 @@
 """Quick debug to see actual replies"""
+import os
 import requests
 import json
 import time
 
 BASE_URL = "http://localhost:8000"
-API_KEY = "honeypot_key_2026_eval"
+API_KEY = os.getenv("HONEYPOT_API_KEY", "honeypot_key_2026_eval")
 
 def test_reply():
     payload = {

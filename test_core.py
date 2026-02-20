@@ -1,12 +1,12 @@
 from fastapi.testclient import TestClient
 from main import app
-
+import os
 import time
 
 client = TestClient(app)
 
 def test_full_flow():
-    api_key = "hackathon-secret-key"
+    api_key = os.getenv("HONEYPOT_API_KEY", "hackathon-secret-key")
 
     def payload(text: str, session_id: str):
         return {

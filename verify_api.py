@@ -1,10 +1,11 @@
+import os
 import requests
 import json
 import time
 
 url = "http://localhost:8000/analyze"
 headers = {
-    "x-api-key": "honeypot_key_2026_eval",
+    "x-api-key": os.getenv("HONEYPOT_API_KEY", "honeypot_key_2026_eval"),
     "Content-Type": "application/json"
 }
 

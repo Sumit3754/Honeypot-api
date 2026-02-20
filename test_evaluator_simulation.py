@@ -2,6 +2,7 @@
 EVALUATOR SIMULATION TEST - Tests ALL 100 Points Criteria
 This simulates exactly how the hackathon evaluator will test your API
 """
+import os
 import requests
 import json
 import time
@@ -11,7 +12,7 @@ from datetime import datetime
 
 BASE_URL = "http://localhost:8000"
 API_ENDPOINT = f"{BASE_URL}/analyze"
-API_KEY = "honeypot_key_2026_eval"
+API_KEY = os.getenv("HONEYPOT_API_KEY", "honeypot_key_2026_eval")
 
 class EvaluatorTest:
     def __init__(self):

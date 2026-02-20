@@ -1,11 +1,12 @@
 """Quick API test against Railway deployment"""
+import os
 import requests
 import json
 
 # Railway URL
 BASE_URL = "https://honeypot-api-production-176c.up.railway.app"
 API_ENDPOINT = f"{BASE_URL}/analyze"
-API_KEY = "honeypot_key_2026_eval"
+API_KEY = os.getenv("HONEYPOT_API_KEY", "honeypot_key_2026_eval")
 
 def test_api():
     """Test API with scam message"""

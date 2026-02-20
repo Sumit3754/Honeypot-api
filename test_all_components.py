@@ -2,6 +2,7 @@
 COMPREHENSIVE LOCAL TEST - All 5 Scoring Components (100 Points)
 Tests all evaluation criteria for 95+ score compliance
 """
+import os
 import requests
 import json
 import time
@@ -10,7 +11,7 @@ from typing import Dict, List
 
 BASE_URL = "http://localhost:8000"
 API_ENDPOINT = f"{BASE_URL}/analyze"
-API_KEY = "honeypot_key_2026_eval"
+API_KEY = os.getenv("HONEYPOT_API_KEY", "honeypot_key_2026_eval")
 
 # Test Results
 results = {

@@ -8,12 +8,10 @@ import requests
 import json
 import time
 
-# Set API key
-os.environ['GEMINI_API_KEY']
-
+# API Configuration
 BASE_URL = "http://localhost:8000"
 API_ENDPOINT = f"{BASE_URL}/analyze"
-API_KEY = "honeypot_key_2026_eval"
+API_KEY = os.getenv("HONEYPOT_API_KEY", "honeypot_key_2026_eval")
 
 def test_entity_extraction():
     """Test that entities are properly extracted"""

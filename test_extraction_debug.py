@@ -1,12 +1,13 @@
 """
 Test entity extraction with the current implementation
 """
+import os
 import requests
 import json
 
 BASE_URL = "http://localhost:8000"
 API_ENDPOINT = f"{BASE_URL}/analyze"
-API_KEY = "honeypot_key_2026_eval"
+API_KEY = os.getenv("HONEYPOT_API_KEY", "honeypot_key_2026_eval")
 
 def test_extraction():
     """Test that ALL entities are extracted"""

@@ -10,6 +10,7 @@ Scoring Breakdown (100 points total):
 5. Response Structure - 10 points
 """
 
+import os
 import pytest
 import requests
 import json
@@ -20,7 +21,7 @@ from typing import Dict, List, Any
 # Configuration
 BASE_URL = "http://localhost:8000"
 API_ENDPOINT = f"{BASE_URL}/analyze"
-API_KEY = "honeypot_key_2026_eval"
+API_KEY = os.getenv("HONEYPOT_API_KEY", "honeypot_key_2026_eval")
 
 # Test Results Tracker
 test_results = {
