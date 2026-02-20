@@ -999,7 +999,7 @@ def generate_agent_reply(history: List[Dict[str, str]], current_message: str, kn
         return response.text.strip()
     except Exception as e:
         logger.error(f"Gemini generation failed: {e}")
-        return "I didn't catch that. Could you give me your phone number so I can call you back?"
+        return _offline_agent_reply(current_message, known_entities, persona_key, language)
 
 
 def _offline_agent_reply(current_message: str, known_entities: Dict, persona_key: str, language: str) -> str:
