@@ -26,10 +26,16 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Constants
-API_KEY = os.getenv("HONEYPOT_API_KEY", "honeypot_key_2026_eval")
-CALLBACK_URL = "https://hackathon.guvi.in/api/updateHoneyPotFinalResult"
+# Constants - All API keys must be set via environment variables
+API_KEY = os.getenv("HONEYPOT_API_KEY")
+if not API_KEY:
+    logger.warning("HONEYPOT_API_KEY not set - API authentication will fail!")
+    API_KEY = "missing"
+
+CALLBACK_URL = os.getenv("CALLBACK_URL", "https://hackathon.guvi.in/api/updateHoneyPotFinalResult")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+if not GEMINI_API_KEY:
+    logger.warning("GEMINI_API_KEY not set - AI responses will use fallback mode")
 
 # Configure Gemini
 if GEMINI_API_KEY:
